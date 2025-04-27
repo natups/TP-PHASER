@@ -108,8 +108,8 @@ export default class Game extends Phaser.Scene {
     this.restartText.setOrigin(0.5); //centra el texto
     this.restartText.setVisible(false); //para que no se vea y este oculto al principio
 
-    // agrego temporizador de 35 segundos
-    this.timeLeft = 35; // Empezamos con 35 segundos
+    // agrego temporizador de 30 segundos
+    this.timeLeft = 30; // Empezamos con 30 segundos
 
     this.timerText = this.add.text(780, 16, `Tiempo: ${this.timeLeft}`, {
       fontSize: '32px', //tamaño de la fuente
