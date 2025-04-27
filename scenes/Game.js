@@ -65,6 +65,13 @@ export default class Game extends Phaser.Scene {
 
     this.cursors = this.input.keyboard.createCursorKeys();
 
+    // al morir, presiono la tecla "R" para reiniciar el juego
+    this.input.keyboard.on('keydown-R', () => {
+      if (this.gameOver) {
+        this.scene.restart();
+      }
+    });
+
     this.stars = this.physics.add.group({
       key: "star",
       repeat: 11,
@@ -84,6 +91,32 @@ export default class Game extends Phaser.Scene {
       fontSize: "32px",
       fill: "#000",
     });
+
+    this.gameOverText = this.add.text(400, 300, 'GAME OVER', {
+      fontSize: '64px',
+      fill: '#ff0000'
+    });
+
+    this.gameOverText.setOrigin(0.5); //centra el texto
+    this.gameOverText.setVisible(false); //para que no se vea y este oculto al principio
+
+    this.restartText = this.add.text(400, 350, 'press "R" to restart', {
+      fontSize: '45px',
+      fill: '#ff0000'
+    });
+
+    this.restartText.setOrigin(0.5); //centra el texto
+    this.restartText.setVisible(false); //para que no se vea y este oculto al principio
+
+    // agrego temporizador de 35 segundos
+    this.timeLeft = 35; // Empezamos con 35 segundos
+
+    this.timerText = this.add.text(780, 16, `Tiempo: ${this.timeLeft}`, {
+      fontSize: '32px', //tamaño de la fuente
+      fill: '#000' //color de la fuente
+    });
+
+    this.timerText.setOrigin(1, 0); // para que esté arriba a la derecha
 
     this.physics.add.collider(this.player, this.platforms);
 
@@ -125,6 +158,48 @@ export default class Game extends Phaser.Scene {
     if (this.cursors.up.isDown && this.player.body.touching.down) {
       this.player.setVelocityY(-330);
     }
+
+    if (this.gameOver) {
+      return;
+    }
+
+    if (this.restart) {
+      return;
+    }
+  
+    if (this.cursors.left.isDown) {
+      this.player.setVelocityX(-160);
+      this.player.anims.play('left', true);
+    } else if (this.cursors.right.isDown) {
+      this.player.setVelocityX(160);
+      this.player.anims.play('right', true);
+    } else {
+      this.player.setVelocityX(0);
+      this.player.anims.play('turn');
+    }
+  
+    if (this.cursors.up.isDown && this.player.body.touching.down) {
+      this.player.setVelocityY(-330);
+    }
+  
+    // Descontar el tiempo
+    this.timeLeft -= this.game.loop.delta / 1000;
+  
+    if (this.timeLeft <= 0) {
+      this.timeLeft = 0;
+      this.endGame(); // Cuando el tiempo llega a 0
+    }
+  
+    this.timerText.setText(`Tiempo: ${Math.ceil(this.timeLeft)}`);
+  }
+
+  endGame() {
+    this.gameOver = true;
+    this.physics.pause(); // Detiene todo
+    this.player.setTint(0xff0000); // Pone al personaje en rojo
+    this.player.anims.play('turn'); // Animación quieta
+    this.gameOverText.setVisible(true); // Mostrar "GAME OVER"
+    this.restartText.setVisible(true); // mostrar "press "R" to restar"
   }
 
   collectStar(player, star) {
@@ -154,11 +229,8 @@ export default class Game extends Phaser.Scene {
 
   hitBomb(player, bomb) {
     this.physics.pause();
-
-    this.player.setTint(0xff0000);
-
-    this.player.anims.play("turn");
-
-    this.gameOver = true;
+    player.setTint(0xff0000);
+    player.anims.play('turn');
+    this.endGame();
   }
 }
